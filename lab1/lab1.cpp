@@ -16,11 +16,25 @@
 using namespace std;
 
 int main() {
-	ifstream dataFile;
-  dataFile.open ("data.csv");
 	string line;
 	vector<vector<int> > edgesVector;
 	int verticesNumber;
+	ifstream dataFile;
+	string fileName;
+	string method;
+
+	cout << "Wpisz 'L' aby użyc metody z listą krawędzi." << endl;
+	cout << "Wpisz 'M' aby użyc metody z macierzą sąsiedztwa." << endl;
+	cin >> method;
+
+	if(method == "L"){
+		dataFile.open ("edges_data.csv");
+	} else if(method == "M"){
+		dataFile.open ("matrix_data.csv");
+	} else {
+		cout << "Wrong option" << endl;
+		return 1;
+	}
 
 	if (dataFile.is_open()){
 		getline (dataFile,line);
@@ -66,30 +80,58 @@ int main() {
 
 	int edgesLength = edgesVector.size();
 
-	for(int i=0;i<verticesNumber;i++){
-		// cout << "Computation for vertice[" << i << "]:" << endl;
-		for(int j=0;j<edgesLength;j++){
-			int edgeStart = edgesVector.at(j).at(0);
 
-			// cout << "Checking edges[" << j << "]:" << endl;
-			if(edgeStart == i){
-				int edgeEnd = edgesVector.at(j).at(1);
-				int edgeLength = edgesVector.at(j).at(2);
+	if(method == "L"){
+		for(int i=0;i<verticesNumber;i++){
+			// cout << "Computation for vertice[" << i << "]:" << endl;
+			for(int j=0;j<edgesLength;j++){
+				int edgeStart = edgesVector.at(j).at(0);
 
-				// cout << "Got matching edge {" << edgeStart << "," << edgeEnd << "," << edgeLength << "}" << endl;
-				if(undefineds[edgeEnd]){
-					// cout << "First visit of end vertice" << endl;
-					pointDistances[edgeEnd] = pointDistances[edgeStart] + edgeLength;
-					pointPrecedors[edgeEnd] = edgeStart;
-					undefineds[edgeEnd] = false;
-				} else {
-					// cout << "Checking distances" << endl;
-					int possibleNewDistance = pointDistances[edgeStart] + edgeLength;
+				// cout << "Checking edges[" << j << "]:" << endl;
+				if(edgeStart == i){
+					int edgeEnd = edgesVector.at(j).at(1);
+					int edgeLength = edgesVector.at(j).at(2);
 
-					if(possibleNewDistance < pointDistances[edgeEnd]){
-						// cout << "Found shorter path!" << endl;
-						pointDistances[edgeEnd] = possibleNewDistance;
+					// cout << "Got matching edge {" << edgeStart << "," << edgeEnd << "," << edgeLength << "}" << endl;
+					if(undefineds[edgeEnd]){
+						// cout << "First visit of end vertice" << endl;
+						pointDistances[edgeEnd] = pointDistances[edgeStart] + edgeLength;
 						pointPrecedors[edgeEnd] = edgeStart;
+						undefineds[edgeEnd] = false;
+					} else {
+						// cout << "Checking distances" << endl;
+						int possibleNewDistance = pointDistances[edgeStart] + edgeLength;
+
+						if(possibleNewDistance < pointDistances[edgeEnd]){
+							// cout << "Found shorter path!" << endl;
+							pointDistances[edgeEnd] = possibleNewDistance;
+							pointPrecedors[edgeEnd] = edgeStart;
+						}
+					}
+				}
+			}
+		}
+	} else {
+		for(int edgeStart=0; edgeStart<verticesNumber; edgeStart++){
+			for(int edgeEnd=0; edgeEnd<verticesNumber; edgeEnd++){
+				if(edgesVector[edgeStart][edgeEnd] != 0){
+					int edgeLength = edgesVector[edgeStart][edgeEnd];
+
+					// cout << "Got matching edge {" << edgeStart << "," << edgeEnd << "," << edgeLength << "}" << endl;
+					if(undefineds[edgeEnd]){
+						// cout << "First visit of end vertice" << endl;
+						pointDistances[edgeEnd] = pointDistances[edgeStart] + edgeLength;
+						pointPrecedors[edgeEnd] = edgeStart;
+						undefineds[edgeEnd] = false;
+					} else {
+						// cout << "Checking distances" << endl;
+						int possibleNewDistance = pointDistances[edgeStart] + edgeLength;
+
+						if(possibleNewDistance < pointDistances[edgeEnd]){
+							// cout << "Found shorter path!" << endl;
+							pointDistances[edgeEnd] = possibleNewDistance;
+							pointPrecedors[edgeEnd] = edgeStart;
+						}
 					}
 				}
 			}
