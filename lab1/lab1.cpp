@@ -20,8 +20,13 @@ int main() {
   dataFile.open ("data.csv");
 	string line;
 	vector<vector<int> > edgesVector;
+	int verticesNumber;
 
 	if (dataFile.is_open()){
+		getline (dataFile,line);
+		stringstream ss(line);
+		ss >> verticesNumber;
+
 		while ( getline (dataFile,line) ){
 			int i;
 			vector<int> values;
@@ -38,12 +43,12 @@ int main() {
 			edgesVector.push_back(values);
     }
 
-		for (int k=0; k< edgesVector.size(); k++){
-			for (int l=0; l< edgesVector.at(k).size(); l++){
-        std::cout << edgesVector.at(k).at(l);
-			}
-			cout << endl;
-		}
+		// for (int k=0; k< edgesVector.size(); k++){
+		// 	for (int l=0; l< edgesVector.at(k).size(); l++){
+    //     std::cout << edgesVector.at(k).at(l);
+		// 	}
+		// 	cout << endl;
+		// }
 
 		dataFile.close();
 	} else {
@@ -51,54 +56,38 @@ int main() {
 		return 1;
 	}
 
-	int edges[7][3]={
-			{0,1,2},
-			{1,2,5},
-			{2,5,2},
-			{0,3,-3},
-			{3,4,1},
-			{4,5,-4},
-			{3,2,2},
-	};
+	vector<int> pointPrecedors (verticesNumber, -1);
+	pointPrecedors[0] = 0;
 
-	int pointPrecedors[6]={
-			0,-1,-1,-1,-1,-1
-	};
+	vector<bool> undefineds(verticesNumber, true);
+	undefineds[0] = false;
 
-	bool undefineds[6]={
-		false,true,true,true,true,true,
-	};
+	vector<int> pointDistances (verticesNumber, 0);
 
-	int pointDistances[6]={
-			0,0,0,0,0,0
-	};
-
-
-	int edgesLength = (sizeof(edges)/sizeof(*edges));
-	int verticesNumber = 6;
+	int edgesLength = edgesVector.size();
 
 	for(int i=0;i<verticesNumber;i++){
-		cout << "Computation for vertice[" << i << "]:" << endl;
+		// cout << "Computation for vertice[" << i << "]:" << endl;
 		for(int j=0;j<edgesLength;j++){
-			int edgeStart = edges[j][0];
+			int edgeStart = edgesVector.at(j).at(0);
 
-			cout << "Checking edges[" << j << "]:" << endl;
+			// cout << "Checking edges[" << j << "]:" << endl;
 			if(edgeStart == i){
-				int edgeEnd = edges[j][1];
-				int edgeLength = edges[j][2];
+				int edgeEnd = edgesVector.at(j).at(1);
+				int edgeLength = edgesVector.at(j).at(2);
 
-				cout << "Got matching edge {" << edgeStart << "," << edgeEnd << "," << edgeLength << "}" << endl;
+				// cout << "Got matching edge {" << edgeStart << "," << edgeEnd << "," << edgeLength << "}" << endl;
 				if(undefineds[edgeEnd]){
-					cout << "First visit of end vertice" << endl;
+					// cout << "First visit of end vertice" << endl;
 					pointDistances[edgeEnd] = pointDistances[edgeStart] + edgeLength;
 					pointPrecedors[edgeEnd] = edgeStart;
 					undefineds[edgeEnd] = false;
 				} else {
-					cout << "Checking distances" << endl;
+					// cout << "Checking distances" << endl;
 					int possibleNewDistance = pointDistances[edgeStart] + edgeLength;
 
 					if(possibleNewDistance < pointDistances[edgeEnd]){
-						cout << "Found shorter path!" << endl;
+						// cout << "Found shorter path!" << endl;
 						pointDistances[edgeEnd] = possibleNewDistance;
 						pointPrecedors[edgeEnd] = edgeStart;
 					}
