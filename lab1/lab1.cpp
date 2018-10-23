@@ -23,8 +23,8 @@ int main() {
 	string fileName;
 	string method;
 
-	cout << "Wpisz 'L' aby użyc metody z listą krawędzi." << endl;
-	cout << "Wpisz 'M' aby użyc metody z macierzą sąsiedztwa." << endl;
+	cout << "Wpisz 'L' aby wczytać dane z pliku z listą krawędzi." << endl;
+	cout << "Wpisz 'M' aby wczytać dane z pliku z macierzą sąsiedztwa." << endl;
 	cin >> method;
 
 	if(method == "L"){
@@ -46,13 +46,13 @@ int main() {
 			vector<int> values;
 			stringstream ss(line);
 
-	    while (ss >> i){
-					values.push_back(i);
+			while (ss >> i){
+				values.push_back(i);
 
-	        if (ss.peek() == ','){
-						ss.ignore();
-					}
-	    }
+				if (ss.peek() == ','){
+					ss.ignore();
+				}
+	    	}
 
 			edgesVector.push_back(values);
     }
@@ -83,54 +83,61 @@ int main() {
 
 	if(method == "L"){
 		for(int i=0;i<verticesNumber;i++){
-			// cout << "Computation for vertice[" << i << "]:" << endl;
+			//cout << "Computation for vertice[" << i << "]:" << endl;
 			for(int j=0;j<edgesLength;j++){
 				int edgeStart = edgesVector.at(j).at(0);
+				int edgeEnd = edgesVector.at(j).at(1);
+				int edgeLength = edgesVector.at(j).at(2);
 
-				// cout << "Checking edges[" << j << "]:" << endl;
-				if(edgeStart == i){
-					int edgeEnd = edgesVector.at(j).at(1);
-					int edgeLength = edgesVector.at(j).at(2);
+				//cout << "Checking edges[" << j << "]:" << endl;
 
-					// cout << "Got matching edge {" << edgeStart << "," << edgeEnd << "," << edgeLength << "}" << endl;
+				if(!undefineds[edgeStart]){
 					if(undefineds[edgeEnd]){
-						// cout << "First visit of end vertice" << endl;
+						//cout << "First visit of end vertice" << endl;
 						pointDistances[edgeEnd] = pointDistances[edgeStart] + edgeLength;
 						pointPrecedors[edgeEnd] = edgeStart;
 						undefineds[edgeEnd] = false;
 					} else {
-						// cout << "Checking distances" << endl;
+						//cout << "Checking distances" << endl;
 						int possibleNewDistance = pointDistances[edgeStart] + edgeLength;
 
 						if(possibleNewDistance < pointDistances[edgeEnd]){
-							// cout << "Found shorter path!" << endl;
+							//cout << "Found shorter path!" << endl;
 							pointDistances[edgeEnd] = possibleNewDistance;
 							pointPrecedors[edgeEnd] = edgeStart;
 						}
 					}
+				} else {
+					//cout << "Leaving edge\n";
 				}
 			}
 		}
 	} else {
-		for(int edgeStart=0; edgeStart<verticesNumber; edgeStart++){
-			for(int edgeEnd=0; edgeEnd<verticesNumber; edgeEnd++){
-				if(edgesVector[edgeStart][edgeEnd] != 0){
+		for(int i=0; i<verticesNumber; i++){
+			for(int edgeStart=0; edgeStart<verticesNumber; edgeStart++){
+				for(int edgeEnd=0; edgeEnd<verticesNumber; edgeEnd++){
 					int edgeLength = edgesVector[edgeStart][edgeEnd];
+					if(edgeLength != 0){
+					
+						//cout << "Got matching edge {" << edgeStart << "," << edgeEnd << "," << edgeLength << "}" << endl;
+						if(!undefineds[edgeStart]){
+							if(undefineds[edgeEnd]){
+								//cout << "First visit of end vertice" << endl;
+								pointDistances[edgeEnd] = pointDistances[edgeStart] + edgeLength;
+								pointPrecedors[edgeEnd] = edgeStart;
+								undefineds[edgeEnd] = false;
+							} else {
+								//cout << "Checking distances" << endl;
+								int possibleNewDistance = pointDistances[edgeStart] + edgeLength;
 
-					// cout << "Got matching edge {" << edgeStart << "," << edgeEnd << "," << edgeLength << "}" << endl;
-					if(undefineds[edgeEnd]){
-						// cout << "First visit of end vertice" << endl;
-						pointDistances[edgeEnd] = pointDistances[edgeStart] + edgeLength;
-						pointPrecedors[edgeEnd] = edgeStart;
-						undefineds[edgeEnd] = false;
-					} else {
-						// cout << "Checking distances" << endl;
-						int possibleNewDistance = pointDistances[edgeStart] + edgeLength;
-
-						if(possibleNewDistance < pointDistances[edgeEnd]){
-							// cout << "Found shorter path!" << endl;
-							pointDistances[edgeEnd] = possibleNewDistance;
-							pointPrecedors[edgeEnd] = edgeStart;
+								if(possibleNewDistance < pointDistances[edgeEnd]){
+									//cout << "Found shorter path!" << endl;
+									pointDistances[edgeEnd] = possibleNewDistance;
+									pointPrecedors[edgeEnd] = edgeStart;
+								}
+							}
+						} else {
+							//cout << "Leaving edge\n";
 						}
 					}
 				}
