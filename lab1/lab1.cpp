@@ -55,7 +55,7 @@ int main() {
 	    	}
 
 			edgesVector.push_back(values);
-    }
+    	}
 
 		// for (int k=0; k< edgesVector.size(); k++){
 		// 	for (int l=0; l< edgesVector.at(k).size(); l++){
@@ -79,7 +79,6 @@ int main() {
 	vector<int> pointDistances (verticesNumber, 0);
 
 	int edgesLength = edgesVector.size();
-
 
 	if(method == "L"){
 		for(int i=0;i<verticesNumber;i++){
@@ -112,13 +111,24 @@ int main() {
 				}
 			}
 		}
+
+		for(int j=0;j<edgesLength;j++){
+			int edgeStart = edgesVector.at(j).at(0);
+			int edgeEnd = edgesVector.at(j).at(1);
+			int edgeLength = edgesVector.at(j).at(2);
+			int possibleNewDistance = pointDistances[edgeStart] + edgeLength;
+
+			if(possibleNewDistance < pointDistances[edgeEnd]){
+				cout << "Negative cycles occurs in graph - unable to find shortes path!\n";
+				return -1;
+			}
+		}
 	} else {
 		for(int i=0; i<verticesNumber; i++){
 			for(int edgeStart=0; edgeStart<verticesNumber; edgeStart++){
 				for(int edgeEnd=0; edgeEnd<verticesNumber; edgeEnd++){
 					int edgeLength = edgesVector[edgeStart][edgeEnd];
 					if(edgeLength != 0){
-					
 						//cout << "Got matching edge {" << edgeStart << "," << edgeEnd << "," << edgeLength << "}" << endl;
 						if(!undefineds[edgeStart]){
 							if(undefineds[edgeEnd]){
@@ -139,6 +149,21 @@ int main() {
 						} else {
 							//cout << "Leaving edge\n";
 						}
+					}
+				}
+			}
+		}
+
+		//negative cycles check
+		for(int edgeStart=0; edgeStart<verticesNumber; edgeStart++){
+			for(int edgeEnd=0; edgeEnd<verticesNumber; edgeEnd++){
+				int edgeLength = edgesVector[edgeStart][edgeEnd];
+				if(edgeLength != 0){
+					int possibleNewDistance = pointDistances[edgeStart] + edgeLength;
+
+					if(possibleNewDistance < pointDistances[edgeEnd]){
+						cout << "Negative cycles occurs in graph - unable to find shortes path!\n";
+						return -1;
 					}
 				}
 			}
