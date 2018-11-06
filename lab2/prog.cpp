@@ -8,7 +8,8 @@
 
 using namespace std;
 
-void bfs(vector<vector<int> > edges, queue<int> &path, int searchedVertice);
+void bfs_L(vector<vector<int> > edges, queue<int> &path, int searchedVertice, int verticesNumber);
+void bfs_M(vector<vector<int> > matrix, queue<int> &path, int searchedVertice, int verticesNumber);
 
 int main() {
 	string line;
@@ -66,9 +67,9 @@ int main() {
 	queue<int> path;
 
 	if(method == "L"){
-		bfs(edgesVector, path, verticesNumber-1);
+		bfs_L(edgesVector, path, verticesNumber-1, verticesNumber);
 	} else {
-		
+		bfs_M(edgesVector, path, verticesNumber-1, verticesNumber);
 	}
 
 
@@ -76,10 +77,10 @@ int main() {
 }
 
 
-void bfs(vector<vector<int> > edges, queue<int> &path, int searchedVertice){
+void bfs_L(vector<vector<int> > edges, queue<int> &path, int searchedVertice, int verticesNumber){
 	queue<int> q;
-	vector<bool> visited(edges.size(), false);
-	vector<int> precedors(edges.size(), -1);
+	vector<bool> visited(verticesNumber, false);
+	vector<int> precedors(verticesNumber, -1);
 	q.push(0);
 	precedors[0]=0;
 	visited[0]=true;
@@ -93,7 +94,7 @@ void bfs(vector<vector<int> > edges, queue<int> &path, int searchedVertice){
 			if(edges[i][0]==curr && !visited[destVert]){
 				precedors[destVert]=curr;
 				if(destVert==searchedVertice){
-					cout << "BFS -> Shortest path (end --> start): \n";
+					cout << "BFS -> Shortest path (end <--- start): \n";
 					path.push(searchedVertice);
 					cout << searchedVertice << " ";
 					curr = searchedVertice;
@@ -113,6 +114,49 @@ void bfs(vector<vector<int> > edges, queue<int> &path, int searchedVertice){
 				q.push(destVert);
 				visited[destVert]=true;
 			}
+		}
+	}
+}
+
+
+void bfs_M(vector<vector<int> > matrix, queue<int> &path, int searchedVertice, int verticesNumber){
+	queue<int> q;
+	vector<bool> visited(verticesNumber, false);
+	vector<int> precedors(verticesNumber, -1);
+	q.push(0);
+	precedors[0]=0;
+	visited[0]=true;
+
+	while(q.size() != 0){
+		int curr = q.front();
+		q.pop();
+
+		for(int i=0;i<verticesNumber;i++){
+            for(int destVert=0;destVert<verticesNumber;destVert++){
+			    if(i==curr && matrix[i][destVert]!=0 && !visited[destVert]){
+				    precedors[destVert]=curr;
+				    if(destVert==searchedVertice){
+					    cout << "BFS -> Shortest path (end <--- start): \n";
+					    path.push(searchedVertice);
+					    cout << searchedVertice << " ";
+					    curr = searchedVertice;
+					    int tmp;
+
+					    while(curr != 0){
+						    tmp = curr; 
+						    curr = precedors[curr];
+						    path.push(curr);
+						    cout << curr << " ";
+					    }
+					
+					    cout << "\n";
+					    return;
+				    }
+				
+				    q.push(destVert);
+				    visited[destVert]=true;
+			    }
+            }
 		}
 	}
 }
