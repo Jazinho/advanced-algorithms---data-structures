@@ -107,13 +107,29 @@ int main() {
 		    min = find_min_M(edgesVector, path, flows);
 	    }
 
-        cout << "Found minimal flow for another path: " << min << "\n";
+        cout << "Minimal flow for path: " << min << "\n\n";
         
         if(method == "L"){
 		    calculate_flows_L(min, path, flows, reversedFlows);
 	    } else {
 		    calculate_flows_M(min, path, flows, reversedFlows);
 	    }
+    }
+
+    cout << "Flows function:\n";
+
+    if(method == "L"){
+        for(int i=0;i<edgesLength;i++){
+            cout << flows[i][0] << "--> (" << flows[i][2] << ") -->" << flows[i][1] << "\n";
+        }
+    } else {
+        for(int i=0;i<verticesNumber;i++){
+            for(int j=0;j<verticesNumber;j++){
+                cout << flows[i][j] << " ";
+            }
+
+            cout << "\n";
+        }
     }
 
 
