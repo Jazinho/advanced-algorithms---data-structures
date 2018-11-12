@@ -21,6 +21,7 @@ int main() {
 	vector<vector<int> > flows;
     vector<vector<int> > reversedFlows;
 	int verticesNumber;
+    int totalFlow = 0;
 	ifstream dataFile;
 	string fileName;
 	string method;
@@ -108,6 +109,8 @@ int main() {
 	    }
 
         cout << "Minimal flow for path: " << min << "\n\n";
+
+        totalFlow += min;
         
         if(method == "L"){
 		    calculate_flows_L(min, path, flows, reversedFlows);
@@ -132,6 +135,7 @@ int main() {
         }
     }
 
+    cout << "Maximum flow is:" << totalFlow << "\n";
 
 	return 0;
 }
