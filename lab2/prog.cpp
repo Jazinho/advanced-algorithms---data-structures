@@ -8,24 +8,20 @@
 
 using namespace std;
 
-void bfs_L(vector<vector<int> > edges, deque<int> &path, int searchedVertice, int verticesNumber, vector<vector<int> >flows);
-void bfs_M(vector<vector<int> > matrix, deque<int> &path, int searchedVertice, int verticesNumber, vector<vector<int> >flows);
-int find_min_L(vector<vector<int> > edgesVector, deque<int> &path, vector<vector<int> >flows);
-int find_min_M(vector<vector<int> > edgesVector, deque<int> &path, vector<vector<int> >flows);
-void calculate_flows_L(int min, deque<int> &path, vector<vector<int> > &flows, vector<vector<int> > &reversedFlows);
-void calculate_flows_M(int min, deque<int> &path, vector<vector<int> > &flows, vector<vector<int> > &reversedFlows);
+int getMaxFlowForAnotherPath_L(vector<vector<int> > edges, deque<int> &path, int searchedVertice, int verticesNumber, vector<vector<int> > &flows, vector<int> &potentialFlows);
+int getMaxFlowForAnotherPath_M(vector<vector<int> > matrix, deque<int> &path, int searchedVertice, int verticesNumber, vector<vector<int> > &flows, vector<int> &potentialFlows);
 
 int main() {
 	string line;
 	vector<vector<int> > edgesVector;
 	vector<vector<int> > flows;
     vector<vector<int> > reversedFlows;
-	int verticesNumber;
+	int verticesNumber, max;
     int totalFlow = 0;
 	ifstream dataFile;
 	string fileName;
 	string method;
-	const int MAXINT = 2147483647;
+	const int MAXINT = 214748364;
 
 	cout << "Wpisz 'L' aby wczytać dane z pliku z listą krawędzi." << endl;
 	cout << "Wpisz 'M' aby wczytać dane z pliku z macierzą sąsiedztwa." << endl;
@@ -68,32 +64,32 @@ int main() {
 	}
 
 	int edgesLength = edgesVector.size();
-
+    vector<int> potentialFlow(verticesNumber);
 	deque<int> path;
     bool flag = true;
     flows = edgesVector;
-    reversedFlows = edgesVector;
 
     if(method == "L"){
 	    for(int i=0;i<edgesLength;i++){
             flows[i][2] = 0;
-            reversedFlows[i][2] = 0;
+            flows[i].push_back(0);
         }
     } else {
-	    for(int i=0;i<verticesNumber;i++){
+    	for(int i=0;i<verticesNumber;i++){
             for(int j=0;j<verticesNumber;j++){
                 flows[i][j] = 0;
-                reversedFlows[i][j] = 0;
             }
+            potentialFlow[i]=0;
         }
     }
 
     while(true){
         deque<int> path;
+        potentialFlow[0]=1000000;
 	    if(method == "L"){
-		    bfs_L(edgesVector, path, verticesNumber-1, verticesNumber, flows);
+		    max = getMaxFlowForAnotherPath_L(edgesVector, path, verticesNumber-1, verticesNumber, flows, potentialFlow);
 	    } else {
-		    bfs_M(edgesVector, path, verticesNumber-1, verticesNumber, flows);
+		    max = getMaxFlowForAnotherPath_M(edgesVector, path, verticesNumber-1, verticesNumber, flows, potentialFlow);
 	    }
 
         if(path.size() == 0){
@@ -101,27 +97,12 @@ int main() {
            break;
         }
 
-        int min;
-        if(method == "L"){
-		    min = find_min_L(edgesVector, path, flows);
-	    } else {
-		    min = find_min_M(edgesVector, path, flows);
-	    }
-
-        cout << "Minimal flow for path: " << min << "\n\n";
-
-        totalFlow += min;
-        
-        if(method == "L"){
-		    calculate_flows_L(min, path, flows, reversedFlows);
-	    } else {
-		    calculate_flows_M(min, path, flows, reversedFlows);
-	    }
+        totalFlow += max;
     }
 
     cout << "Flows function:\n";
 
-    if(method == "L"){
+    /*if(method == "L"){
         for(int i=0;i<edgesLength;i++){
             cout << flows[i][0] << "--> (" << flows[i][2] << ") -->" << flows[i][1] << "\n";
         }
@@ -133,7 +114,7 @@ int main() {
 
             cout << "\n";
         }
-    }
+    }*/
 
     cout << "Maximum flow is:" << totalFlow << "\n";
 
@@ -141,7 +122,7 @@ int main() {
 }
 
 
-void bfs_L(vector<vector<int> > edges, deque<int> &path, int searchedVertice, int verticesNumber, vector<vector<int> >flows){
+int getMaxFlowForAnotherPath_L(vector<vector<int> > edges, deque<int> &path, int searchedVertice, int verticesNumber, vector<vector<int> > &flows, vector<int> &potentialFlows){
 	deque<int> q;
 	vector<bool> visited(verticesNumber, false);
 	vector<int> precedors(verticesNumber, -1);
@@ -154,25 +135,43 @@ void bfs_L(vector<vector<int> > edges, deque<int> &path, int searchedVertice, in
 		q.pop_front();
 
 		for(int i=0; i<edges.size();i++){
+			int startVert = edges[i][0];
 			int destVert = edges[i][1];
-			if(edges[i][0]==curr && !visited[destVert] && edges[i][2]-flows[i][2] > 0){
+            int residualFlow = edges[i][2]-flows[i][2]; //what more can i put into pipe (capacity minus currentlyFlowing)
+                                                            // przepływ rezydualny - potencjał w przepływie
+            //int reverseResidualFlow = edges[i][2]-flows[i][3];
+
+            //cout << "reee " << residualFlow << "\n";
+			if(startVert==curr && !visited[destVert] && residualFlow > 0){
 				precedors[destVert]=curr;
+                potentialFlows[destVert] = potentialFlows[startVert] > residualFlow ? residualFlow : potentialFlows[startVert];
+
 				if(destVert==searchedVertice){
+                    int maxFlow = potentialFlows[destVert];
 					cout << "BFS -> Shortest path (end <--- start): \n";
 					path.push_back(searchedVertice);
 					cout << searchedVertice << " ";
 					curr = searchedVertice;
-					int tmp;
+					int end;
 
 					while(curr != 0){
-						tmp = curr; 
-						curr = precedors[curr];
+						end = curr; 
+						curr = precedors[end];
 						path.push_back(curr);
 						cout << curr << " ";
+
+                        for(int j=0;j<flows.size();j++){
+                            if(flows[j][0]==curr && flows[j][1]==end){
+                                int currentFlow = flows[j][2];
+                                //int currentReverseFlow = reversedFlows[j][2];
+                                flows[j][2]=currentFlow + maxFlow;
+                                //reversedFlows[j][2]=currentReverseFlow - maxFlow;
+                            }
+                        }
 					}
 					
 					cout << "\n";
-					return;
+					return maxFlow;
 				}
 				
 				q.push_back(destVert);
@@ -183,7 +182,7 @@ void bfs_L(vector<vector<int> > edges, deque<int> &path, int searchedVertice, in
 }
 
 
-void bfs_M(vector<vector<int> > matrix, deque<int> &path, int searchedVertice, int verticesNumber, vector<vector<int> >flows){
+int getMaxFlowForAnotherPath_M(vector<vector<int> > matrix, deque<int> &path, int searchedVertice, int verticesNumber, vector<vector<int> > &flows, vector<int> &potentialFlows){
 	deque<int> q;
 	vector<bool> visited(verticesNumber, false);
 	vector<int> precedors(verticesNumber, -1);
@@ -197,24 +196,41 @@ void bfs_M(vector<vector<int> > matrix, deque<int> &path, int searchedVertice, i
 
 		for(int i=0;i<verticesNumber;i++){
             for(int destVert=0;destVert<verticesNumber;destVert++){
-			    if(i==curr && matrix[i][destVert]!=0 && !visited[destVert] && matrix[i][destVert]-flows[i][destVert] > 0){
+                int residualFlow = matrix[i][destVert]-flows[i][destVert]; //what more can i put into pipe (capacity minus currentlyFlowing)
+                                                                           // przepływ rezydualny - potencjał w przepływie
+
+			    if(i==curr && matrix[i][destVert]!=0 && !visited[destVert] && residualFlow > 0){
 				    precedors[destVert]=curr;
+                    potentialFlows[destVert] = potentialFlows[curr] > residualFlow ? residualFlow : potentialFlows[curr];
+
 				    if(destVert==searchedVertice){
+                        int maxFlow = potentialFlows[destVert];
 					    cout << "BFS -> Shortest path (end <--- start): \n";
 					    path.push_back(searchedVertice);
 					    cout << searchedVertice << " ";
 					    curr = searchedVertice;
-					    int tmp;
+					    int endVert;
 
 					    while(curr != 0){
-						    tmp = curr; 
-						    curr = precedors[curr];
+						    endVert = curr; 
+						    curr = precedors[endVert];
 						    path.push_back(curr);
 						    cout << curr << " ";
+
+                            for(int start=0;start<flows.size();start++){
+                                for(int end=0;end<flows.size();end++){
+                                    if(start==curr && end==endVert){
+                                        int currentFlow = flows[start][end];
+                                        int currentReverseFlow = flows[end][start];
+                                        flows[start][end]=currentFlow + maxFlow;
+                                        flows[end][start]=currentReverseFlow - maxFlow;
+                                    }
+                                }
+                            }
 					    }
 					
 					    cout << "\n";
-					    return;
+					    return maxFlow;
 				    }
 				
 				    q.push_back(destVert);
@@ -223,82 +239,6 @@ void bfs_M(vector<vector<int> > matrix, deque<int> &path, int searchedVertice, i
             }
 		}
 	}
-}
-
-
-int find_min_L(vector<vector<int> > edgesVector, deque<int> &path, vector<vector<int> >flows){
-    int min = 10000000;    
-    for(int i=path.size()-1;i>0;i--){
-        int edgeStart = path[i];
-        int edgeEnd = path[i-1];
-
-        for(int j=0;j<edgesVector.size();j++){
-            int possibleMinFlow = edgesVector[j][2]-flows[j][2];
-
-            if(edgesVector[j][0]==edgeStart && edgesVector[j][1]==edgeEnd && possibleMinFlow < min){
-                min = possibleMinFlow;
-            }
-        }
-    }
-
-    return min;
-}
-
-
-int find_min_M(vector<vector<int> > edgesVector, deque<int> &path, vector<vector<int> >flows){
-    int min = 10000000;    
-    for(int i=path.size()-1;i>0;i--){
-        int edgeStart = path[i];
-        int edgeEnd = path[i-1];
-
-        for(int start=0;start<edgesVector.size();start++){
-            for(int end=0;end<edgesVector.size();end++){
-                int possibleMinFlow = edgesVector[start][end]-flows[start][end];
-
-                if(start==edgeStart && end==edgeEnd && possibleMinFlow < min){
-                    min = possibleMinFlow;
-                }
-            }
-        }
-    }
-
-    return min;
-}
-
-
-void calculate_flows_L(int min, deque<int> &path, vector<vector<int> > &flows, vector<vector<int> > &reversedFlows){
-    for(int i=path.size()-1;i>0;i--){
-        int edgeStart = path[i];
-        int edgeEnd = path[i-1];
-
-        for(int j=0;j<flows.size();j++){
-            if(flows[j][0]==edgeStart && flows[j][1]==edgeEnd){
-                int currentFlow = flows[j][2];
-                int currentReverseFlow = reversedFlows[j][2];
-                flows[j][2]=currentFlow + min;
-                reversedFlows[j][2]=currentReverseFlow - min;
-            }
-        }
-    }
-}
-
-
-void calculate_flows_M(int min, deque<int> &path, vector<vector<int> > &flows, vector<vector<int> > &reversedFlows){
-    for(int i=path.size()-1;i>0;i--){
-        int edgeStart = path[i];
-        int edgeEnd = path[i-1];
-
-        for(int start=0;start<flows.size();start++){
-            for(int end=0;end<flows.size();end++){
-                if(start==edgeStart && end==edgeEnd){
-                    int currentFlow = flows[start][end];
-                    int currentReverseFlow = reversedFlows[start][end];
-                    flows[start][end]=currentFlow + min;
-                    reversedFlows[start][end]=currentReverseFlow - min;
-                }
-            }
-        }
-    }
 }
 
 
