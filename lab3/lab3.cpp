@@ -8,7 +8,7 @@ using namespace std;
 
 double fun(double x);
 double doubleRand();
-double doubleRandForNthThread(unsigned int n);
+double doubleRandForNthThread(unsigned int *n);
 
 int main(){
 
@@ -38,7 +38,7 @@ int main(){
 
 		//cout << "k: " << k << ", n: " << n << "\n";
 
-		for(int i=k;i<p;i+=4){
+		for(int i=k;i<p;i+=n){
 			w+=fun(i*dx)*dx;
 		}
 
@@ -69,7 +69,7 @@ int main(){
 
 	srand(static_cast<unsigned int>(clock()));
 	double pts_num = 10000000;
-	double inside_pts_num = 0;
+	double inside_pts_num = 0.0;
 	double r=0.5;
 	double carlo_start_time = omp_get_wtime();
 
@@ -106,17 +106,17 @@ int main(){
 		unsigned int n=omp_get_num_threads();
 		double thread_res=0;
 
-		for(int i=k;i<pts_num;i+=4){
-			double x=doubleRandForNthThread(k);
-			double y=doubleRandForNthThread(k);
+		for(int i=k;i<pts_num;i+=n){
+			double x=doubleRandForNthThread(&k);
+			double y=doubleRandForNthThread(&k);
 			double distance = sqrt(pow(r-x,2)+pow(r-y,2));
 
 			if(distance < r){
 				thread_res++;
 			}
 		}
-
-		multi_insides[k]=thread_res;
+		
+		multi_insides[omp_get_thread_num()]=thread_res;
 	}
 
 	for(int j=0;j<4;j++){
@@ -124,7 +124,8 @@ int main(){
 	}
 
 	double carlo_multi_end_time = omp_get_wtime();
-	cout << "Multithreaded: Circle points in/all x4 = " << (circle_total/pts_num)*4 << "\n"; 
+	double multi_pi = (circle_total/pts_num);
+	cout << "Multithreaded: Circle points in/all x4 = " << multi_pi*4 << "\n"; 
 	cout << "Multithreaded: Circle points in/all took " << carlo_multi_end_time-carlo_multi_start_time << "[s]\n\n"; 
 
 	return 0;
@@ -138,8 +139,8 @@ double doubleRand() {
   return double(rand()) / (double(RAND_MAX) + 1.0);
 }
 
-double doubleRandForNthThread(unsigned int n) {
-  return double(rand_r(&n)) / (double(RAND_MAX) + 1.0);
+double doubleRandForNthThread(unsigned int *k) {
+  return double(rand_r(k)) / (double(RAND_MAX));
 }
 
 
