@@ -148,7 +148,7 @@ int getMaxFlowForAnotherPath_L(vector<vector<int> > edges, deque<int> &path, int
 
 				if(destVert==searchedVertice){
                     int maxFlow = potentialFlows[destVert];
-					cout << "BFS -> Shortest path (end <--- start): \n";
+					cout << "BFS -> Shortest path (end <--- start) with max flow " << maxFlow << " is: \n";
 					path.push_back(searchedVertice);
 					cout << searchedVertice << " ";
 					curr = searchedVertice;
@@ -205,7 +205,7 @@ int getMaxFlowForAnotherPath_M(vector<vector<int> > matrix, deque<int> &path, in
 
 				    if(destVert==searchedVertice){
                         int maxFlow = potentialFlows[destVert];
-					    cout << "BFS -> Shortest path (end <--- start): \n";
+					    cout << "BFS -> Shortest path (end <--- start) with max flow " << maxFlow << " is: \n";
 					    path.push_back(searchedVertice);
 					    cout << searchedVertice << " ";
 					    curr = searchedVertice;
