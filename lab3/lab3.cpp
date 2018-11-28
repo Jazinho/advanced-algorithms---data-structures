@@ -60,15 +60,18 @@ int main(){
 	// PRAGMA REDUCTION SYNTAX
 
 	double red_res=0;
+	double reduction_start_time = omp_get_wtime();
 	#pragma omp parallel for reduction(+:red_res)
 	for(int l=0;l<p;l++){
 		red_res=red_res+fun(l*dx)*dx;
 	}
+	double reduction_end_time = omp_get_wtime();
 	
-	cout << "Reduction_result=" << red_res*4 << "\n\n";
+	cout << "Reduction_result=" << red_res*4 << "\n";
+	cout << "Reduction execution took " << reduction_end_time - reduction_start_time << "[s]\n\n";
 
 	srand(static_cast<unsigned int>(clock()));
-	double pts_num = 10000000;
+	int pts_num = 100000000;
 	double inside_pts_num = 0.0;
 	double r=0.5;
 	double carlo_start_time = omp_get_wtime();
@@ -127,6 +130,31 @@ int main(){
 	double multi_pi = (circle_total/pts_num);
 	cout << "Multithreaded: Circle points in/all x4 = " << multi_pi*4 << "\n"; 
 	cout << "Multithreaded: Circle points in/all took " << carlo_multi_end_time-carlo_multi_start_time << "[s]\n\n"; 
+
+
+	double carlo_red_res=0;
+	double carlo_red_start_time = omp_get_wtime();
+
+	#pragma omp parallel
+	{
+		unsigned int k=omp_get_thread_num();
+
+		#pragma omp for reduction(+:carlo_red_res)
+		for(int c=0;c<pts_num;c++){
+			double x=doubleRandForNthThread(&k);
+			double y=doubleRandForNthThread(&k);
+			float distance = sqrt(pow(r-x,2)+pow(r-y,2));
+
+			if(distance < r){
+				carlo_red_res = carlo_red_res + 1;
+			}
+		}
+	}
+
+	double carlo_red_end_time = omp_get_wtime();
+	
+	cout << "MonteCarlo reduction_result=" << (carlo_red_res/pts_num)*4 << "\n";
+	cout << "MonteCarlo reduction execution took " << carlo_red_end_time - carlo_red_start_time << "[s]\n\n";
 
 	return 0;
 }
