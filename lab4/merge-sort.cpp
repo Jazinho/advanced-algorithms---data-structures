@@ -12,25 +12,74 @@ void merge(int* arr, int l, int m, int r);
 void printArray(int* array, int size);
 
 int main(){
-	int size = 10000000;
+	int threadsNum;
+	int size = 5000000;
 	int* arr = new int[size]; 
+
+	int* multi_arr = new int[size]; 
 
 	srand(static_cast<unsigned int>(clock()));
 	for(int i=0; i<size; i++){
 		arr[i]=rand();
+		multi_arr[i]=rand();
 	}
 
-	cout << "arr[0]=" << arr[0] << " before sort\n";
-	cout << "arr[" << size-1 << "]=" << arr[size-1] << " before sort\n";
+	//cout << "Before sort\n";
+	//printArray(arr, size);
   
 	double before_single_mergesort = omp_get_wtime();
     mergeSort(arr, 0, size - 1); 
 	double after_single_mergesort = omp_get_wtime();
 
-	cout << "arr[0]=" << arr[0] << " after sort\n";
-	cout << "arr[" << size-1 << "]=" << arr[size-1] << " after sort\n";	
+	//cout << "After sort\n";
+	//printArray(arr, size);
 
-	cout << "Single threaded mergesort took " << after_single_mergesort - before_single_mergesort << "[s]\n";
+	cout << "Single threaded mergesort took " << after_single_mergesort - before_single_mergesort << "[s]\n\n";
+
+
+
+	//cout << "Before sort\n";
+	//printArray(multi_arr, size);
+
+	double before_multi_mergesort = omp_get_wtime();
+
+	#pragma omp parallel
+	{
+		int k=omp_get_thread_num();
+		int n=omp_get_num_threads();
+		threadsNum = n;
+
+		int part = size/n;
+
+		mergeSort(multi_arr, k*part, (k+1)*part - 1); 
+	}
+
+	int partsUnmerged = threadsNum;
+	int part = size/threadsNum;
+
+	while(partsUnmerged > 1){
+		partsUnmerged = partsUnmerged / 2;
+
+		for(int i=0;i<partsUnmerged;i++){
+			int l = i*2*part;
+			int m = (i*2+1)*part-1;
+			int r = (i*2+2)*part-1;
+
+			merge(multi_arr, l, m, r);			
+		}
+
+		part = part * 2;
+	}
+
+	double after_multi_mergesort = omp_get_wtime();
+
+	//cout << "After sort\n";
+	//printArray(multi_arr, size);
+
+	cout << "Multi threaded mergesort took " << after_multi_mergesort - before_multi_mergesort << "[s]\n";
+
+	delete[] arr;
+	delete[] multi_arr;
   
     return 0; 
 }
@@ -55,7 +104,7 @@ void merge(int* arr, int l, int m, int r) {
   
     for (i = 0; i < left_size; i++) 
         L[i] = arr[l + i];
-
+		
     for (j = 0; j < right_size; j++) 
         R[j] = arr[m + 1+ j]; 
   
@@ -87,6 +136,9 @@ void merge(int* arr, int l, int m, int r) {
         j++; 
         k++; 
     } 
+
+	delete[] L;
+	delete[] R;
 } 
 
 
