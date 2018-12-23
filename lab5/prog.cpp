@@ -2,10 +2,30 @@
 #include <fstream>
 #include <string>
 #include <map>
+#include <vector>
 #include <sstream>
+#include <set>
+#include <algorithm>
+#include <functional>
 
 using namespace std;
 
+struct TreeNode
+{
+  TreeNode * next;
+  TreeNode * left;
+  TreeNode * right;
+  char ch;
+  int count;
+};
+
+struct Cmp
+{
+    bool operator ()(const pair<char, int> &a, const pair<char, int> &b)
+    {
+        return a.second > b.second;
+    }
+} comp;
 
 int main() {
 	string line;
@@ -40,8 +60,7 @@ int main() {
 	} else if(method == "d"){
 		dataFile.open ("toDecode.txt");
 		if (dataFile.is_open()){
-			// getline (dataFile,line);
-			//ss >> verticesNumber;
+
 			while ( getline (dataFile,line) ){
 				if(line == ""){
 					break;
@@ -56,7 +75,6 @@ int main() {
 				codeMap.insert(make_pair(i,occurences));
 	    }
 
-			//stringstream ss(line);
 			getline (dataFile,line);
 			code = line;
 			dataFile.close();
@@ -77,6 +95,27 @@ int main() {
 
 	for (it = codeMap.begin(); it != codeMap.end(); ++it ){
 		cout << "[" << it->first << "]: " << it->second << "\n";
+	}
+
+	cout << "\n";
+	vector<pair<char,int> > codeVect(codeMap.begin(), codeMap.end());
+	vector<pair<char,int> > codeTree(codeVect.size()*(codeVect.size()-1)/2);
+
+	// for(int i=0;i<codeVect.size();i++){
+	// 	if(i>=)
+	// 	codeTree.push_back
+	// }
+
+	sort(codeVect.begin(), codeVect.end(), comp);
+
+	// while(codeVect.size() > 1){
+	// 	int last = codeVect.pop_back();
+	// 	int befLast = codeVect.pop_back();
+	// 	codeVect.push_back()
+	// }
+
+	for (int i=0;i< codeVect.size();i++){
+		cout << "[" << codeVect[i].first << "]: " << codeVect[i].second << "\n";
 	}
 
 	return 0;

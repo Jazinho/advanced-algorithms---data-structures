@@ -43,12 +43,13 @@ int main(){
   listToTree(root);
 
   treeToFile(root,"", outputFile);
-  outputFile << endl;
+  outputFile << "---" << endl;
 
   encode(root,s, outputFile);
   outputFile << endl;
 
   deleteTree(root);
+  dataFile.close();
   outputFile.close();
   return 0;
 }
