@@ -32,7 +32,12 @@ int main(){
 
 	dataFile.open ("toEncode.txt", ios::in);
   if (dataFile.is_open()){
-		getline (dataFile,s);
+    while (!dataFile.eof() ) {
+      string tmp;
+  		getline (dataFile, tmp);
+      s += tmp;
+      s += '\n';
+    }
     dataFile.close();
   } else {
     return 1;

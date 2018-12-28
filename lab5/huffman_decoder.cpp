@@ -24,7 +24,7 @@ int main(){
   ofstream outputFile;
   outputFile.open ("decodingOutput.txt");
 
-	inputFile.open ("toDecode.txt", ios::in);
+	inputFile.open ("encodingOutput.txt", ios::in);
   if (!inputFile.is_open()){
     return 1;
   }
@@ -43,17 +43,21 @@ int main(){
 void createTree(TreeNode * & root, ifstream& inputStream){
   int i,j;
   char character;
+  char tmp;
   string characterCode;
   TreeNode * node;
 
   root = new TreeNode;
   root->left  = NULL;
   root->right = NULL;
+  inputStream >> noskipws;
 
   while(true){
-    inputStream >> character >> characterCode;
+    inputStream >> character >> tmp >> characterCode >> tmp;
 
-    if(character == '-' && characterCode == "--"){
+    //cout << character << characterCode;
+
+    if(character == '-' && characterCode == "-"){
       break;
     }
 
@@ -79,6 +83,8 @@ void createTree(TreeNode * & root, ifstream& inputStream){
       node->ch = character;
     }
   }
+
+  inputStream >> skipws;
 }
 
 
